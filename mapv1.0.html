@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=\, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link
+      rel="stylesheet"
+      href="leaflet/leaflet.css"
+    />
+    <script
+      src="leaflet/leaflet.js"
+    ></script>
+    
+    <style>
+      #map {
+        height: 360px;
+      }
+    </style>
+
+    <title>Fetch JSON from API and map lat lon</title>
+  </head>
+  <body>
+    <h1>Where is the ISS?</h1>
+
+    <p>
+      latitude: <span id="lat"></span>°<br />
+      longitude: <span id="lon"></span>° <br />
+    </p>
+
+    <div id="map"></div>
+
+    <script type="text/javascript">
+      // Making a map and tiles
+      // Setting a higher initial zoom to make effect more obvious
+      const gps_nmea_url = 'http://192.168.43.234:9090/GPGGS';
+      const api_url = 'https://api.wheretheiss.at/v1/satellites/25544';
+      const rwplat = 33.565111, rwplong  = 73.016913;
+      var map = L.map('map').setView([rwplat, rwplong], 13);
+      const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+      L.tileLayer(tileUrl, {
+                            maxZoom: 25,
+                            attribution: '© OpenStreetMap'
+                            }).addTo(map);
+
+      // Making a marker with a custom icon
+      let marker = L.marker([rwplat, rwplong]).addTo(map);
+      let firstTime = true;
+
+      async function getISS() {
+        const response = await fetch(gps_nmea_url);
+        const data = await response.json();
+        
+        const { latitude, longitude } = data;
+
+        // Always set the view to current lat lon and zoom!
+        map.setView([latitude, longitude], map.getZoom());
+        marker.setLatLng([latitude, longitude]);
+
+        document.getElementById('lat').textContent = latitude.toFixed(4);
+        document.getElementById('lon').textContent = longitude.toFixed(4);
+      }
+
+      getISS();
+      setInterval(getISS, 1000);
+    </script>
+  </body>
+</html>
